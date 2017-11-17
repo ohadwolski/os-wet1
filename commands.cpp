@@ -91,7 +91,13 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "history"))
 	{
-
+		if (num_arg != 0)
+		{
+			illegal_cmd = TRUE;
+		} else
+		{
+			history->print();
+		}
 	}
 
 	/*************************************************/
