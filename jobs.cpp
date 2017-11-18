@@ -59,6 +59,16 @@ int job::getId()
   return id;
 }
 //**************************************************************************************
+// function name: getPId
+// Description: returns job pid
+// Parameters: -
+// Returns: int
+//**************************************************************************************
+int job::getPId()
+{
+  return pid;
+}
+//**************************************************************************************
 // function name: getStopped
 // Description: returns stopped status
 // Parameters: -
@@ -125,8 +135,8 @@ void job::changeStopped()
 //**************************************************************************************
 void jobs_list::print()
 {
-  std::list<job*>::iterator it = jobs_list.begin();
-  for (; it != jobs_list.end() ; it++)
+  std::list<job*>::iterator it = jobsList.begin();
+  for (; it != jobsList.end() ; it++)
   {
     job->print();
   }
@@ -141,9 +151,9 @@ void jobs_list::print()
 job* jobs_list::find_job(int id)
 {
   if (id == 0)
-    return jobs_list.end();
-  std::list<job*>::iterator it = jobs_list.begin();
-  for (; it != jobs_list.end(); it++)
+    return jobsList.end();
+  std::list<job*>::iterator it = jobsList.begin();
+  for (; it != jobsList.end(); it++)
   {
     if (it->getId() == id)
       return it;
@@ -158,7 +168,8 @@ job* jobs_list::find_job(int id)
 //**************************************************************************************
 void jobs_list::addJob(job* job_)
 {
-  jobs_list->push_back(job_);
+  job job_c = new job(job_->getId(), job_->getPId(), job_->getName());
+  jobsList->push_back(job_c);
 }
 //**************************************************************************************
 // function name: rmJob
@@ -168,10 +179,20 @@ void jobs_list::addJob(job* job_)
 //**************************************************************************************
 bool jobs_list::rmJob(int id)
 {
-  job* job_to_rm = jobs_list->find_job(id);
+  job* job_to_rm = jobsList->find_job(id);
   if (job_to_rm == NULL)
     return FALSE;
   delete job_to_rm;
-  jobs_list->erase(job_to_rm); // not sure if this works
+  jobsList->erase(job_to_rm); // not sure if this works
   return TRUE;
+}
+//**************************************************************************************
+// function name: get_last_job
+// Description: get last job pointer
+// Parameters:
+// Returns: pointer to job or null
+//**************************************************************************************
+job* jobs_list::get_last_job()
+{
+  return jobsList.end();
 }

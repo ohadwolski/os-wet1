@@ -11,19 +11,22 @@
 #include <iostream>
 #include <time.h>
 
+class jobs_list;
+class job;
 
 class jobs_list
 {
 private:
-  std::list<job*> jobs_list;
+  std::list<job*> jobsList;
 public:
   jobs_list() {};
   ~jobs_list() {};
   void print();
   job* find_job(int id);
+  job* get_last_job();
   void addJob(job* job_);
   bool rmJob(int id);
-}
+};
 
 class job
 {
@@ -38,11 +41,12 @@ public:
   ~job();
   void print();
   int getId();
+  int getPId();
   bool getStopped();
   char* getName();
   double getRunningTime();
   void changeStopped();
-}
+};
 
 
 #endif

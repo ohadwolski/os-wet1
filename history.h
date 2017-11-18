@@ -22,7 +22,7 @@ public:
   ~history_list();
   void add(char* command_string);
   void print();
-}
+};
 
 
 
