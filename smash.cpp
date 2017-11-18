@@ -12,15 +12,17 @@ main file. This file contains the main function of smash
 #include "commands.h"
 #include "signals.h"
 #include "history.h"
+#include "jobs.h"
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 using namespace std;
 
 
 char* L_Fg_Cmd;
-void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+//void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE];
 history_list* history = new history_list();
+jobs_list* jobs = new jobs_list();
 
 //**************************************************************************************
 // function name: main

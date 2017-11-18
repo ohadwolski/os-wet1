@@ -10,5 +10,6 @@
 #include <vector>
 #include <iostream>
 #include "history.h"
+#include "jobs.h"
 
 #endif

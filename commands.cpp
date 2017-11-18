@@ -114,12 +114,24 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 
 	else if (!strcmp(cmd, "jobs"))
 	{
-
+		if (num_arg != 0)
+		{
+			illegal_cmd = TRUE;
+		} else
+		{
+			jobs->print();
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid"))
 	{
-
+		if (num_arg != 0)
+		{
+			illegal_cmd = TRUE;
+		} else
+		{
+			cout << "smash pid is " << getpid() << endl;
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg"))
