@@ -21,6 +21,10 @@ int BgCmd(char* lineSize, void* jobs);
 int ExeCmd(void* jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 
+void move_fg_to_bg();
+void new_fg(int pID, char* name);
+void remove_fg();
+
 extern history_list* history;
 extern jobs_list* jobs;
 

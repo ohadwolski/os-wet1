@@ -6,7 +6,7 @@
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
 #include "signals.h"
-
+using namespace std;
 
 
 
@@ -55,7 +55,7 @@ void ctrlZ_Hndlr(int sig)
 		else
 		{
 
-			move_fg_to_bg()
+			move_fg_to_bg();
 			cout << "smash > A signal SIGTSTP (CTRL+Z) was sent to process: " << running_in_fg << endl;
 			job* job_c = new job(jobs->getNextJobNum(), running_in_fg, running_in_fg_name);
 

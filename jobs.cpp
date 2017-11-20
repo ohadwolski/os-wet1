@@ -22,8 +22,8 @@ job::job(int id_, int pid_, char* name_)
   name = (char*)malloc(sizeof(char)*(strlen(name_)+1));
   if (!name) return;
   strcpy(name, name_);
-  timer = time();
-  stopped = FALSE;
+  timer = time(NULL);
+  stopped = false;
 }
 //**************************************************************************************
 // function name: ~job
@@ -96,7 +96,7 @@ char* job::getName()
 //**************************************************************************************
 double job::getRunningTime()
 {
-  return difftime(time(), timer);
+  return difftime(time(NULL), timer);
 }
 //**************************************************************************************
 // function name: changeStopped
@@ -106,10 +106,10 @@ double job::getRunningTime()
 //**************************************************************************************
 void job::changeStopped()
 {
-  if (stopped == TRUE)
-    stopped = FALSE;
+  if (stopped == true)
+    stopped = false;
   else
-    stopped = TRUE;
+    stopped = true;
 }
 
 
@@ -126,7 +126,7 @@ void job::changeStopped()
 // Parameters: -
 // Returns: -
 //**************************************************************************************
-~jobs_list()
+void jobs_list::~jobs_list()
 {
 	std::list<job*>::iterator it = jobs.begin();
 	for (; it != jobs.end() ; it++)
@@ -145,7 +145,7 @@ void jobs_list::print()
   std::list<job*>::iterator it = jobsList.begin();
   for (; it != jobsList.end() ; it++)
   {
-    job->print();
+    it->print();
   }
 }
 //**************************************************************************************
@@ -158,12 +158,12 @@ void jobs_list::print()
 job* jobs_list::find_job(int id)
 {
   if (id == 0)
-    return jobsList.end();
+    return *(jobsList.end());
   std::list<job*>::iterator it = jobsList.begin();
   for (; it != jobsList.end(); it++)
   {
-    if (it->getId() == id)
-      return it;
+    if (*(it)->getId() == id)
+      return *(it);
   }
   return NULL;
 }
@@ -188,10 +188,10 @@ bool jobs_list::rmJob(int id)
 {
   job* job_to_rm = jobsList->find_job(id);
   if (job_to_rm == NULL)
-    return FALSE;
+    return false;
   delete job_to_rm;
   jobsList->erase(job_to_rm); // not sure if this works
-  return TRUE;
+  return true;
 }
 //**************************************************************************************
 // function name: get_last_job
@@ -201,12 +201,12 @@ bool jobs_list::rmJob(int id)
 //**************************************************************************************
 job* jobs_list::get_last_job()
 {
-  return jobsList.end();
+  return *(jobsList.end());
 }
 
 //**************************************************************************************
 // function name: get_last_stopped
-// Description: get last job stopped pointer 
+// Description: get last job stopped pointer
 // Parameters:
 // Returns: pointer to job or null
 //**************************************************************************************
@@ -215,9 +215,9 @@ job* jobs_list::get_last_stopped()
 	std::list<job*>::iterator it = jobsList.end();
 	 for (; it != jobsList.begin(); it--)
 	 {
-		 if (it->getStopped())
+		 if (*(it)->getStopped())
 		 {
-			 return it;
+			 return *(it);
 		 }
 	 }
 	return NULL;
@@ -234,39 +234,39 @@ bool jobs_list::kill_all()
 	std::list<job*>::iterator it = jobsList.begin();
 	for (; it != jobsList.end(); it++)
 	{
-		if (kill(it->getPId(), SIGTERM) == -1)
+		if (kill(*(it)->getPId(), SIGTERM) == -1)
 		{
-			perror("Failed sending SIGTERM to %d \n", it->getPId());
-			return FALSE;
+			perror("Failed sending SIGTERM to %d \n", *(it)->getPId());
+			return false;
 		}
-		time_t term_time = time();
-		it->print();
+		time_t term_time = time(NULL);
+		*(it)->print();
 		cout << "sending SIGTERM ...";
-		
+
 		bool terminated = false;
-		while (time() - term_time <= 5)
+		while (time(NULL) - term_time <= 5)
 		{
 			//WNOHANG     return immediately if no child has exited
-			int status = waitpid(it->getPId(), NULL, WNOHANG);
+			int status = waitpid(*(it)->getPId(), NULL, WNOHANG);
 			if (status == -1)
 			{
-				perror("Failed waiting to %d \n", it->getPId());
-				return FALSE;
-			} else if (status == it->getPId())
+				perror("Failed waiting to %d \n", *(it)->getPId());
+				return false;
+			} else if (status == *(it)->getPId())
 			{
 				cout << "done." << endl;
 				terminated = true;
 				break;
 			}
 		}
-		
+
 		if (!terminated)
 		{
 			cout << "(5 sec passed) Sending SIGKILL...";
-			if (kill(it->getPId(), SIGKILL) == -1)
+			if (kill(*(it)->getPId(), SIGKILL) == -1)
 			{
-				perror("Failed sending SIGTKILL to %d \n", it->getPId());
-				return FALSE;
+				perror("Failed sending SIGTKILL to %d \n", *(it)->getPId());
+				return false;
 			}
 			cout << " done." << endl;
 		}
