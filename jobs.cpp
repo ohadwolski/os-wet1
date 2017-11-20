@@ -196,6 +196,7 @@ bool jobs_list::rmJob(int id)
   for (; it != jobsList.end(); it++)
   {
     if ((*it)->getId() == id)
+      cout<<"got here!"<<endl;
       jobsList.erase(it);
   }
 

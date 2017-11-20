@@ -1,6 +1,8 @@
 //		commands.c
 //********************************************
 #include "commands.h"
+#include "history.h"
+#include "jobs.h"
 #include <unistd.h>
 using namespace std;
 //********************************************
@@ -13,7 +15,7 @@ static char prevPath[MAX_LINE_SIZE] = {NULL}; // used inorder to maintain previo
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
+int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 {
 	char* cmd;
 	char* args[MAX_ARG];
@@ -195,17 +197,20 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			char* name = job_to_fg->getName();
 			bool stopped_status = job_to_fg->getStopped();
 
+
+
+			new_fg( pid, name);
 			////////////////////// changing fg status
-			running_in_fg = pid;
-			if (running_in_fg_name)
-				free(running_in_fg_name);
-			running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
-			if (!running_in_fg_name)
-			{
-				cout << "malloc failed!" << endl;
-				return 1;
-			}
-			strcpy(running_in_fg_name, name);
+			// running_in_fg = pid;
+			// if (running_in_fg_name)
+			// 	free(running_in_fg_name);
+			// running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
+			// if (!running_in_fg_name)
+			// {
+			// 	cout << "malloc failed!" << endl;
+			// 	return 1;
+			// }
+			// strcpy(running_in_fg_name, name);
 			///////////////////////
 
 			cout << name << endl;
@@ -218,7 +223,9 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			cout << "smash > signal SIGCONT sent to pid " << pid << endl;
 
 			job* job_c = new job(id ,pid, name);
+
 			jobs->rmJob(id);
+
 			int status;
 			if (waitpid(pid, &status , WUNTRACED) == -1) // waiting till stopped or exited
 			{
@@ -231,11 +238,13 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 					job_c->changeStopped();
 				jobs->addJob(job_c);
 
-				//////// changing fg status
-				running_in_fg = 0;
-				free(running_in_fg_name);
-				running_in_fg_name = NULL;
-				////////
+
+				remove_fg();
+				// //////// changing fg status
+				// running_in_fg = 0;
+				// free(running_in_fg_name);
+				// running_in_fg_name = NULL;
+				// ////////
 			}
 			delete job_c;
 			//sending signal SIGCONT
@@ -425,7 +434,7 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, jobs_list* jobs)
+int BgCmd(char* lineSize) //, jobs_list* jobs)
 {
 
 	char* Command;

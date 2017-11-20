@@ -14,6 +14,9 @@
 class jobs_list;
 class job;
 
+
+
+
 class jobs_list
 {
 private:

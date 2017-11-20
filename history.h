@@ -13,12 +13,17 @@
 #define MAX_LIST_SIZE 50
 #define MAX_LINE_SIZE 80
 
+class history_list;
+
+
+
+
 class history_list
 {
 private:
   std::list<char*> list;
 public:
-  history_list();
+  history_list() {};
   ~history_list();
   void add(char* command_string);
   void print();

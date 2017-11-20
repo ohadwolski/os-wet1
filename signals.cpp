@@ -6,6 +6,8 @@
 /* Name: handler_cntlc
    Synopsis: handle the Control-C */
 #include "signals.h"
+#include "commands.h"
+#include "jobs.h"
 using namespace std;
 
 
