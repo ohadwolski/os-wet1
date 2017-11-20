@@ -1,6 +1,8 @@
 //		commands.c
 //********************************************
 #include "commands.h"
+#include "history.h"
+#include "jobs.h"
 #include <unistd.h>
 using namespace std;
 //********************************************
@@ -13,12 +15,12 @@ static char prevPath[MAX_LINE_SIZE] = {NULL}; // used inorder to maintain previo
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
+int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 {
 	char* cmd;
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
-	char* delimiters = " \t\n";
+	char* delimiters = (char*) " \t\n";
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = false; // illegal command
   cmd = strtok(lineSize, delimiters);
@@ -102,14 +104,14 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "kill"))
 	{
-		if (num_arg !=2 || *args[1] != '-' || atoi(args[1]+1)) == 0 || atoi(arg[2]) == 0)
+		if (num_arg !=2 || *args[1] != '-' || atoi(args[1]+1) == 0 || atoi(args[2]) == 0)
 		{
 			illegal_cmd = true;
 		} else
 		{
-			int sig_num = atoi(arg[1]+1);
-			int job_id = atoi(arg[2]);
-			job* job_p = jobsList->find_job(job_id);
+			int sig_num = atoi(args[1]+1);
+			int job_id = atoi(args[2]);
+			job* job_p = jobs->find_job(job_id);
 			if (job_p == NULL)
 			{
 				cout << "smash error: > kill" << job_id << " - can't find job" << endl;
@@ -179,7 +181,7 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			job* job_to_fg;
 			if (num_arg == 0)
 			{
-				job_to_fg = jobs->get_last_job()
+				job_to_fg = jobs->get_last_job();
 
 			} else
 			{
@@ -195,19 +197,22 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			char* name = job_to_fg->getName();
 			bool stopped_status = job_to_fg->getStopped();
 
+
+
+			new_fg( pid, name);
 			////////////////////// changing fg status
-			running_in_fg = pid;
-			if (running_in_fg_name)
-				free(running_in_fg_name);
-			running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
-			if (!running_in_fg_name) 
-			{
-				cout << "malloc failed!" << endl;
-				return 1
-			}
-			strcpy(running_in_fg_name, name);
+			// running_in_fg = pid;
+			// if (running_in_fg_name)
+			// 	free(running_in_fg_name);
+			// running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
+			// if (!running_in_fg_name)
+			// {
+			// 	cout << "malloc failed!" << endl;
+			// 	return 1;
+			// }
+			// strcpy(running_in_fg_name, name);
 			///////////////////////
-			
+
 			cout << name << endl;
 			if (kill(pid, SIGCONT) == -1)
 			{
@@ -218,7 +223,9 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			cout << "smash > signal SIGCONT sent to pid " << pid << endl;
 
 			job* job_c = new job(id ,pid, name);
+
 			jobs->rmJob(id);
+
 			int status;
 			if (waitpid(pid, &status , WUNTRACED) == -1) // waiting till stopped or exited
 			{
@@ -230,12 +237,14 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 				if (stopped_status == false)
 					job_c->changeStopped();
 				jobs->addJob(job_c);
-				
-				//////// changing fg status
-				running_in_fg = 0;
-				free(running_in_fg_name);
-				running_in_fg_name = NULL;
-				////////
+
+
+				remove_fg();
+				// //////// changing fg status
+				// running_in_fg = 0;
+				// free(running_in_fg_name);
+				// running_in_fg_name = NULL;
+				// ////////
 			}
 			delete job_c;
 			//sending signal SIGCONT
@@ -269,15 +278,15 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 				job_c = jobs->find_job(atoi(args[1]));
 				pid = job_c->getPId();
 			}
-			
+
 			if(kill(pid,SIGCONT)==-1){
 				perror("sending SIGCONT failed\n");
 				return 1;
 			}
-			
+
 			cout << "smash > signal SIGCONT was sent to pid: " << pid << endl;
-			
-			if job_c->getStopped())
+
+			if (job_c->getStopped())
 				job_c->changeStopped();
 			job_c->print();
 		}
@@ -294,7 +303,7 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			delete jobs;
 			free(running_in_fg_name);
 			exit(0);
-		} else if (!strcmp(arg[1], "kill"))
+		} else if (!strcmp(args[1], "kill"))
 		{
 			if (!jobs->kill_all())
 			{
@@ -354,15 +363,15 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 
 			default:
                 	// Add your code here
-					
-					
-					new_fg(pID, char* &args[0]);
+
+
+					new_fg(pID, args[0]);
 					////////////////////// changing fg status
 					int status;
-					if (waitpid(pid, &status , WUNTRACED) == -1) // waiting till stopped or exited
+					if (waitpid(pID, &status , WUNTRACED) == -1) // waiting till stopped or exited
 					{
 						perror("smash error:> waitpid failed");
-						return 1;
+						return;
 					} else if (WIFSTOPPED(status)) // if stopped than add to job list again
 					{
 						move_fg_to_bg();
@@ -401,7 +410,7 @@ int ExeComp(char* lineSize)
 				perror("smash error: > execvp failed");
 				exit(1);
 			default :
-			
+
 				new_fg(pid, lineSize);
 				int job = waitpid(pid, &childState, WUNTRACED);
 				if (job == -1){
@@ -425,7 +434,7 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, jobs_list* jobs)
+int BgCmd(char* lineSize) //, jobs_list* jobs)
 {
 
 	char* Command;

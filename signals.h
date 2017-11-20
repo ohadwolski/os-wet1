@@ -9,9 +9,9 @@
 #include <signal.h>
 #include <vector>
 #include <iostream>
-#include "history.h"
-#include "jobs.h"
-#include "commands.h"
+//#include "history.h"
+//#include "jobs.h"
+//#include "commands.h"
 
 
 void ctrlC_Hndlr(int sig);
