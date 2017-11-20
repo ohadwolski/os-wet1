@@ -12,7 +12,7 @@
 
 //**************************************************************************************
 // function name: ctrlC_Hndlr
-// Description: handler for the CTRL+Z
+// Description: handler for the CTRL+C
 // Parameters: signal number
 // Returns: -
 //**************************************************************************************
@@ -29,7 +29,7 @@ void ctrlC_Hndlr(int sig)
 		{
 			cout << "smash > A signal SIGINT (CTRL+C) was sent to process: " << running_in_fg << endl;
 			remove_fg();
-			
+
 			// running_in_fg = 0;
 			// free(running_in_fg_name);
 			// running_in_fg_name = NULL;
@@ -54,11 +54,11 @@ void ctrlZ_Hndlr(int sig)
 		}
 		else
 		{
-			
+
 			move_fg_to_bg()
 			cout << "smash > A signal SIGTSTP (CTRL+Z) was sent to process: " << running_in_fg << endl;
 			job* job_c = new job(jobs->getNextJobNum(), running_in_fg, running_in_fg_name);
-			
+
 			// job_c->changeStopped();
 			// jobs->addJob(job_c);
 			// delete job_c;
