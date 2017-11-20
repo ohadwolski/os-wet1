@@ -23,4 +23,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString);
 
 extern history_list* history;
 extern jobs_list* jobs;
+
+extern int running_in_fg;
+extern char* running_in_fg_name;
 #endif

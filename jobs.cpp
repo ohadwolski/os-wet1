@@ -121,12 +121,19 @@ void job::changeStopped()
 //**************************************************************************************
 //jobs_list();
 //**************************************************************************************
-// function name:
-// Description:
+// function name: ~jobs_list
+// Description: deletes the jobs from list
 // Parameters: -
 // Returns: -
 //**************************************************************************************
-//~jobs_list();
+~jobs_list()
+{
+	std::list<job*>::iterator it = jobs.begin();
+	for (; it != jobs.end() ; it++)
+	{
+		delete it;
+	}
+}
 //**************************************************************************************
 // function name: print
 // Description: prints job list
@@ -195,4 +202,85 @@ bool jobs_list::rmJob(int id)
 job* jobs_list::get_last_job()
 {
   return jobsList.end();
+}
+
+//**************************************************************************************
+// function name: get_last_stopped
+// Description: get last job stopped pointer 
+// Parameters:
+// Returns: pointer to job or null
+//**************************************************************************************
+job* jobs_list::get_last_stopped()
+{
+	std::list<job*>::iterator it = jobsList.end();
+	 for (; it != jobsList.begin(); it--)
+	 {
+		 if (it->getStopped())
+		 {
+			 return it;
+		 }
+	 }
+	return NULL;
+}
+
+//**************************************************************************************
+// function name: kill_all
+// Description: sends SIGTERM to each process, waits 5 secs than sends SIGKILL
+// Parameters:
+// Returns: TRUE if all killed successfully else FALSE
+//**************************************************************************************
+bool jobs_list::kill_all()
+{
+	std::list<job*>::iterator it = jobsList.begin();
+	for (; it != jobsList.end(); it++)
+	{
+		if (kill(it->getPId(), SIGTERM) == -1)
+		{
+			perror("Failed sending SIGTERM to %d \n", it->getPId());
+			return FALSE;
+		}
+		time_t term_time = time();
+		it->print();
+		cout << "sending SIGTERM ...";
+		
+		bool terminated = false;
+		while (time() - term_time <= 5)
+		{
+			//WNOHANG     return immediately if no child has exited
+			int status = waitpid(it->getPId(), NULL, WNOHANG);
+			if (status == -1)
+			{
+				perror("Failed waiting to %d \n", it->getPId());
+				return FALSE;
+			} else if (status == it->getPId())
+			{
+				cout << "done." << endl;
+				terminated = true;
+				break;
+			}
+		}
+		
+		if (!terminated)
+		{
+			cout << "(5 sec passed) Sending SIGKILL...";
+			if (kill(it->getPId(), SIGKILL) == -1)
+			{
+				perror("Failed sending SIGTKILL to %d \n", it->getPId());
+				return FALSE;
+			}
+			cout << " done." << endl;
+		}
+	}
+	return true;
+}
+
+//**************************************************************************************
+// function name: getNextJobNum
+// Description: get new job's number
+// Parameters:
+// Returns: int
+//**************************************************************************************
+int jobs_list::getNextJobNum()
+{
+	return (jobsList.size() + 1);
 }
