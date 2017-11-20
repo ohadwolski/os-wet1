@@ -32,7 +32,7 @@ void move_fg_to_bg()
 	job_c->changeStopped();
 	jobs->addJob(job_c);
 	delete job_c;
-	
+
 	//////// changing fg status
 	running_in_fg = 0;
 	free(running_in_fg_name);
@@ -47,7 +47,7 @@ void new_fg(int pID, char* name)
 	if (running_in_fg_name)
 		free(running_in_fg_name);
 	running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
-	if (!running_in_fg_name) 
+	if (!running_in_fg_name)
 	{
 		cout << "malloc failed!" << endl;
 		return;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	ctrlZ_act.sa_flags = SA_RESTART;
 	ctrlZ_act.sa_handler = &ctrlZ_Hndlr;
 
-	 
+
 	sigaction(SIGINT,&ctrlC_act,NULL);
 	sigaction(SIGTSTP,&ctrlZ_act,NULL);
 	/************************************/

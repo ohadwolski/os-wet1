@@ -41,7 +41,8 @@ void history_list::add(char* command_string)
       list.push_back(record);
     } else
     {
-      free(list.pop_front());
+      free(*(list.begin()));
+      list.pop_front();
       list.push_back(record);
     }
   }

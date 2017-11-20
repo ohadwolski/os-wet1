@@ -43,7 +43,7 @@ job::~job()
 //**************************************************************************************
 void job::print()
 {
-  cout << "[" << id << "] " << name << " : " << pid << " " << getRunningTime << "secs ";
+  cout << "[" << id << "] " << name << " : " << pid << " " << getRunningTime() << "secs ";
   if (getStopped())
     cout << "(Stopped)";
   cout << endl;
@@ -126,12 +126,12 @@ void job::changeStopped()
 // Parameters: -
 // Returns: -
 //**************************************************************************************
-void jobs_list::~jobs_list()
+jobs_list::~jobs_list()
 {
-	std::list<job*>::iterator it = jobs.begin();
-	for (; it != jobs.end() ; it++)
+	std::list<job*>::iterator it = jobsList.begin();
+	for (; it != jobsList.end() ; it++)
 	{
-		delete it;
+		delete (*it);
 	}
 }
 //**************************************************************************************
@@ -145,7 +145,7 @@ void jobs_list::print()
   std::list<job*>::iterator it = jobsList.begin();
   for (; it != jobsList.end() ; it++)
   {
-    it->print();
+    (*it)->print();
   }
 }
 //**************************************************************************************
@@ -162,8 +162,8 @@ job* jobs_list::find_job(int id)
   std::list<job*>::iterator it = jobsList.begin();
   for (; it != jobsList.end(); it++)
   {
-    if (*(it)->getId() == id)
-      return *(it);
+    if ((*it)->getId() == id)
+      return (*it);
   }
   return NULL;
 }
@@ -175,8 +175,8 @@ job* jobs_list::find_job(int id)
 //**************************************************************************************
 void jobs_list::addJob(job* job_)
 {
-  job job_c = new job(job_->getId(), job_->getPId(), job_->getName());
-  jobsList->push_back(job_c);
+  job* job_c = new job(job_->getId(), job_->getPId(), job_->getName());
+  jobsList.push_back(job_c);
 }
 //**************************************************************************************
 // function name: rmJob
@@ -186,11 +186,20 @@ void jobs_list::addJob(job* job_)
 //**************************************************************************************
 bool jobs_list::rmJob(int id)
 {
-  job* job_to_rm = jobsList->find_job(id);
+  job* job_to_rm = find_job(id);
+
   if (job_to_rm == NULL)
     return false;
+
+
+  std::list<job*>::iterator it = jobsList.begin();
+  for (; it != jobsList.end(); it++)
+  {
+    if ((*it)->getId() == id)
+      jobsList.erase(it);
+  }
+
   delete job_to_rm;
-  jobsList->erase(job_to_rm); // not sure if this works
   return true;
 }
 //**************************************************************************************
@@ -215,9 +224,9 @@ job* jobs_list::get_last_stopped()
 	std::list<job*>::iterator it = jobsList.end();
 	 for (; it != jobsList.begin(); it--)
 	 {
-		 if (*(it)->getStopped())
+		 if ((*it)->getStopped())
 		 {
-			 return *(it);
+			 return (*it);
 		 }
 	 }
 	return NULL;
@@ -234,25 +243,25 @@ bool jobs_list::kill_all()
 	std::list<job*>::iterator it = jobsList.begin();
 	for (; it != jobsList.end(); it++)
 	{
-		if (kill(*(it)->getPId(), SIGTERM) == -1)
+		if (kill((*it)->getPId(), SIGTERM) == -1)
 		{
-			perror("Failed sending SIGTERM to %d \n", *(it)->getPId());
+			perror("Failed sending SIGTERM \n");
 			return false;
 		}
 		time_t term_time = time(NULL);
-		*(it)->print();
+		(*it)->print();
 		cout << "sending SIGTERM ...";
 
 		bool terminated = false;
 		while (time(NULL) - term_time <= 5)
 		{
 			//WNOHANG     return immediately if no child has exited
-			int status = waitpid(*(it)->getPId(), NULL, WNOHANG);
+			int status = waitpid((*it)->getPId(), NULL, WNOHANG);
 			if (status == -1)
 			{
-				perror("Failed waiting to %d \n", *(it)->getPId());
+				perror("Failed waiting \n");
 				return false;
-			} else if (status == *(it)->getPId())
+			} else if (status == (*it)->getPId())
 			{
 				cout << "done." << endl;
 				terminated = true;
@@ -263,9 +272,9 @@ bool jobs_list::kill_all()
 		if (!terminated)
 		{
 			cout << "(5 sec passed) Sending SIGKILL...";
-			if (kill(*(it)->getPId(), SIGKILL) == -1)
+			if (kill((*it)->getPId(), SIGKILL) == -1)
 			{
-				perror("Failed sending SIGTKILL to %d \n", *(it)->getPId());
+				perror("Failed sending SIGTKILL \n");
 				return false;
 			}
 			cout << " done." << endl;
