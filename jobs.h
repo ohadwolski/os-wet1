@@ -20,12 +20,15 @@ private:
   std::list<job*> jobsList;
 public:
   jobs_list() {};
-  ~jobs_list() {};
+  ~jobs_list();
   void print();
   job* find_job(int id);
   job* get_last_job();
+  job* get_last_stopped();
   void addJob(job* job_);
   bool rmJob(int id);
+  bool kill_all();
+  int getNextJobNum();
 };
 
 class job

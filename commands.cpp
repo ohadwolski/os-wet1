@@ -195,6 +195,19 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 			char* name = job_to_fg->getName();
 			bool stopped_status = job_to_fg->getStopped();
 
+			////////////////////// changing fg status
+			running_in_fg = pid;
+			if (running_in_fg_name)
+				free(running_in_fg_name);
+			running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
+			if (!running_in_fg_name) 
+			{
+				cout << "malloc failed!" << endl;
+				return 1
+			}
+			strcpy(running_in_fg_name, name);
+			///////////////////////
+			
 			cout << name << endl;
 			if (kill(pid, SIGCONT) == -1)
 			{
@@ -204,7 +217,7 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 
 			cout << "smash > signal SIGCONT sent to pid " << pid << endl;
 
-			job job_c = new job(id ,pid, name);
+			job* job_c = new job(id ,pid, name);
 			jobs->rmJob(id);
 			int status;
 			if (waitpid(pid, &status , WUNTRACED) == -1) // waiting till stopped or exited
@@ -217,6 +230,12 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 				if (stopped_status == false)
 					job_c->changeStopped();
 				jobs->addJob(job_c);
+				
+				//////// changing fg status
+				running_in_fg = 0;
+				free(running_in_fg_name);
+				running_in_fg_name = NULL;
+				////////
 			}
 			delete job_c;
 			//sending signal SIGCONT
@@ -229,12 +248,67 @@ int ExeCmd(jobs_list* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "bg"))
 	{
-
+		if (num_arg > 1 || (num_arg==1 && atoi(args[1]) == 0))
+		{
+			illegal_cmd = true;
+		} else
+		{
+			job* job_c;
+			int pid;
+			if (num_arg == 0)
+			{
+				job_c = jobs->get_last_stopped();
+				pid = job_c->getPId();
+			} else
+			{
+				if (jobs->find_job(atoi(args[1])) == NULL)
+				{
+					cout << "smash > can't find job id in job list!" << endl;
+					return 1;
+				}
+				job_c = jobs->find_job(atoi(args[1]));
+				pid = job_c->getPId();
+			}
+			
+			if(kill(pid,SIGCONT)==-1){
+				perror("sending SIGCONT failed\n");
+				return 1;
+			}
+			
+			cout << "smash > signal SIGCONT was sent to pid: " << pid << endl;
+			
+			if job_c->getStopped())
+				job_c->changeStopped();
+			job_c->print();
+		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
-
+		if (num_arg >1)
+		{
+			illegal_cmd = true;
+		} else if (num_arg == 0)
+		{
+			delete history;
+			delete jobs;
+			free(running_in_fg_name);
+			exit(0);
+		} else if (!strcmp(arg[1], "kill"))
+		{
+			if (!jobs->kill_all())
+			{
+				cout << "killing and quitting FAILED!" << endl;
+				exit(1);
+			}
+			delete history;
+			delete jobs;
+			free(running_in_fg_name);
+			exit(0);
+		} else
+		{
+			illegal_cmd = true;
+		}
 	}
 	/*************************************************/
 	else // external command
@@ -263,25 +337,36 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
     		case -1:
 					// Add your code here (error)
 
-					/*
-					your code
-					*/
+					perror("smash error: > fork failed");
+					break;
         	case 0 :
                 	// Child Process
-               		setpgrp();
+                	if (setpgrp() == -1)
+    				{
+    					perror("smash error: > setpgrp failed");
+    				}
 
 			        // Add your code here (execute an external command)
 
-					/*
-					your code
-					*/
+    				execvp(args[0],args);
+    				perror("smash error: > execvp failed");
+    				exit(1);
 
 			default:
                 	// Add your code here
-
-					/*
-					your code
-					*/
+					
+					
+					new_fg(pID, char* &args[0]);
+					////////////////////// changing fg status
+					int status;
+					if (waitpid(pid, &status , WUNTRACED) == -1) // waiting till stopped or exited
+					{
+						perror("smash error:> waitpid failed");
+						return 1;
+					} else if (WIFSTOPPED(status)) // if stopped than add to job list again
+					{
+						move_fg_to_bg();
+					}
 	}
 }
 //**************************************************************************************
