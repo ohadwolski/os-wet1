@@ -377,15 +377,45 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 //**************************************************************************************
 int ExeComp(char* lineSize)
 {
-	char ExtCmd[MAX_LINE_SIZE+2];
-	char *args[MAX_ARG];
+	//char ExtCmd[MAX_LINE_SIZE+2];
+	//char *args[MAX_ARG];
     if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
     {
 		// Add your code here (execute a complicated command)
+		int pid;
+		int childState;
+		char* args[] = { (char*)"sh", (char*)"-f", (char*)"-c", lineSize, NULL};
 
-		/*
-		your code
-		*/
+		switch(pid = fork())
+		{
+			case -1:
+
+				perror("smash error: > fork failed");
+				break;
+			case 0 :
+				if (setpgrp() == -1)
+				{
+					perror("smash error: > setpgrp failed");
+				}
+				execvp(args[0],args);
+				perror("smash error: > execvp failed");
+				exit(1);
+			default :
+			
+				new_fg(pid, lineSize);
+				int job = waitpid(pid, &childState, WUNTRACED);
+				if (job == -1){
+					perror("smash error: > waitpid() failed");
+				}
+				else if (WIFSTOPPED(childState)){
+					move_fg_to_bg();
+					return 0;
+				}
+				else{
+					remove_fg();
+					return 0;
+				}
+		}
 	}
 	return -1;
 }
@@ -399,17 +429,51 @@ int BgCmd(char* lineSize, jobs_list* jobs)
 {
 
 	char* Command;
-	char* delimiters = " \t\n";
+	char string[MAX_LINE_SIZE];
+	char* delimiters = (char*)" \t\n";
 	char *args[MAX_ARG];
+	int num_arg = 0;
+
+	strcpy(string, lineSize);
+	string[strlen(lineSize)-1]='\0';
+
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
+
 		lineSize[strlen(lineSize)-2] = '\0';
-		// Add your code here (execute a in the background)
+		string[strlen(lineSize)] = '\0';
 
-		/*
-		your code
-		*/
+		Command = strtok(lineSize, delimiters);
+		if (Command == NULL)
+			return 0;
+	   	args[0] = Command;
 
+		for (int i=1; i<MAX_ARG; i++)
+		{
+			args[i] = strtok(NULL, delimiters);
+
+		}
+
+		int pID;
+	   	switch(pID = fork())
+		{
+			case -1:
+				perror("smash error: > fork failed");
+				break;
+			case 0:
+				if(setpgrp()==-1){
+					perror("smash error: > setpgrp failed");
+					exit(0);
+				}
+				execvp(args[0],args);
+				exit(0);
+				break;
+			default:
+				job* job_c = new job(jobs->getNextJobNum() ,pID, args[0]);
+				jobs->addJob(job_c);
+				delete job_c;
+		}
+		return 0;
 	}
 	return -1;
 }
