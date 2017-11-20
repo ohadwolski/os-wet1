@@ -121,6 +121,8 @@ int main(int argc, char *argv[])
 		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';
+
+		jobs->update();
 	}
     return 0;
 }

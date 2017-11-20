@@ -23,19 +23,15 @@ void ctrlC_Hndlr(int sig)
     printf("\b\b");  //canceling the ^C that is being printed
     if ((sig == SIGINT) && (running_in_fg != 0))
     {
-        if (kill(running_in_fg,SIGINT) == -1)
-		{
-            perror("kill failed during handling SIGINT signal\n");
-		}
-        else
-		{
-			cout << "smash > A signal SIGINT (CTRL+C) was sent to process: " << running_in_fg << endl;
-			remove_fg();
-
-			// running_in_fg = 0;
-			// free(running_in_fg_name);
-			// running_in_fg_name = NULL;
-		}
+          if (kill(running_in_fg,SIGINT) == -1)
+		      {
+              perror("kill failed during handling SIGINT signal\n");
+		      }
+          else
+		      {
+			         cout << "smash > A signal SIGINT (CTRL+C) was sent to process: " << running_in_fg << endl;
+			         remove_fg();
+		      }
     }
 }
 
@@ -56,17 +52,9 @@ void ctrlZ_Hndlr(int sig)
 		}
 		else
 		{
-
-			move_fg_to_bg();
 			cout << "smash > A signal SIGTSTP (CTRL+Z) was sent to process: " << running_in_fg << endl;
-			job* job_c = new job(jobs->getNextJobNum(), running_in_fg, running_in_fg_name);
+      //move_fg_to_bg();
 
-			// job_c->changeStopped();
-			// jobs->addJob(job_c);
-			// delete job_c;
-			// running_in_fg = 0;
-			// free(running_in_fg_name);
-			// running_in_fg_name = NULL;
 		}
 	}
 }

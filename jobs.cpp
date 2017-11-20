@@ -176,6 +176,7 @@ job* jobs_list::find_job(int id)
 void jobs_list::addJob(job* job_)
 {
   job* job_c = new job(job_->getId(), job_->getPId(), job_->getName());
+  if (job_->getStopped()) job_c->changeStopped();
   jobsList.push_back(job_c);
 }
 //**************************************************************************************
@@ -191,16 +192,7 @@ bool jobs_list::rmJob(int id)
   if (job_to_rm == NULL)
     return false;
 
-
-  std::list<job*>::iterator it = jobsList.begin();
-  for (; it != jobsList.end(); it++)
-  {
-    if ((*it)->getId() == id)
-      cout<<"got here!"<<endl;
-      jobsList.erase(it);
-  }
-
-  delete job_to_rm;
+  jobsList.remove(job_to_rm);
   return true;
 }
 //**************************************************************************************
@@ -292,5 +284,38 @@ bool jobs_list::kill_all()
 //**************************************************************************************
 int jobs_list::getNextJobNum()
 {
-	return (jobsList.size() + 1);
+  int job_num = 0;
+  std::list<job*>::iterator it = jobsList.begin();
+  for (; it != jobsList.end(); it++)
+  {
+    if ((*it)->getId() > job_num) job_num = (*it)->getId();
+  }
+  return job_num+1;
+}
+
+
+//**************************************************************************************
+// function name: update
+// Description: updates list of jobs
+// Parameters: -
+// Returns: -
+//**************************************************************************************
+void jobs_list::update()
+{
+  std::list<job*>::iterator it = jobsList.begin();
+  for (; it != jobsList.end() ; it++)
+  {
+    int childState;
+    int job = waitpid((*it)->getPId(), &childState,  WNOHANG | WUNTRACED);
+    if (job == -1)
+    {
+      perror("smash error: > waitpid() failed");
+    } else if (WIFSTOPPED(childState))
+    {
+      if (!((*it)->getStopped())) (*it)->changeStopped();
+    } else if (job == (*it)->getPId())
+    {
+      rmJob((*it)->getPId());
+    }
+  }
 }

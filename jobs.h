@@ -32,6 +32,7 @@ public:
   bool rmJob(int id);
   bool kill_all();
   int getNextJobNum();
+  void update();
 };
 
 class job
