@@ -203,7 +203,10 @@ bool jobs_list::rmJob(int id)
 //**************************************************************************************
 job* jobs_list::get_last_job()
 {
-  return *(jobsList.end());
+  if (jobsList.size() == 0) return NULL;
+  std::list<job*>::iterator it = jobsList.end();
+  it--;
+  return (*it);
 }
 
 //**************************************************************************************

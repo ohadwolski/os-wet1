@@ -107,6 +107,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 	/*************************************************/
 	else if (!strcmp(cmd, "kill"))
 	{
+		jobs->update();
 		if (num_arg !=2 || *args[1] != '-' || atoi(args[1]+1) == 0 || atoi(args[2]) == 0)
 		{
 			illegal_cmd = true;
@@ -154,6 +155,8 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 
 	else if (!strcmp(cmd, "jobs"))
 	{
+			jobs->update();
+
 		if (num_arg != 0)
 		{
 			illegal_cmd = true;
@@ -176,6 +179,8 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 	/*************************************************/
 	else if (!strcmp(cmd, "fg"))
 	{
+		jobs->update();
+
 		if (num_arg > 1)
 		{
 			illegal_cmd = true;
@@ -185,7 +190,11 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 			if (num_arg == 0)
 			{
 				job_to_fg = jobs->get_last_job();
-
+				if (job_to_fg == NULL)
+				{
+					cout<<"no jobs"<<endl;
+					return 1;
+				}
 			} else
 			{
 				if (atoi(args[1]) == 0 || jobs->find_job(atoi(args[1])) == NULL)
@@ -203,18 +212,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 
 
 			new_fg( pid, name);
-			////////////////////// changing fg status
-			// running_in_fg = pid;
-			// if (running_in_fg_name)
-			// 	free(running_in_fg_name);
-			// running_in_fg_name = (char*)malloc((strlen(name)+1)*sizeof(char));
-			// if (!running_in_fg_name)
-			// {
-			// 	cout << "malloc failed!" << endl;
-			// 	return 1;
-			// }
-			// strcpy(running_in_fg_name, name);
-			///////////////////////
+
 
 			cout << name << endl;
 			if (kill(pid, SIGCONT) == -1)
@@ -243,23 +241,16 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 
 
 				remove_fg();
-				// //////// changing fg status
-				// running_in_fg = 0;
-				// free(running_in_fg_name);
-				// running_in_fg_name = NULL;
-				// ////////
+
 			}
 			delete job_c;
-			//sending signal SIGCONT
-			//print job name
-			// remove from list, copy to local job
-			// wait for job to return
-			// if stopped by ctrlz than add to jobs list with stopped
+
 		}
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "bg"))
 	{
+		jobs->update();
 		if (num_arg > 1 || (num_arg==1 && atoi(args[1]) == 0))
 		{
 			illegal_cmd = true;
@@ -297,6 +288,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
+		jobs->update();
 		if (num_arg >1)
 		{
 			illegal_cmd = true;
@@ -343,6 +335,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 //**************************************************************************************
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
+	jobs->update();
 	int pID;
     	switch(pID = fork())
 	{
@@ -389,6 +382,8 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 //**************************************************************************************
 int ExeComp(char* lineSize)
 {
+
+		jobs->update();
 	//char ExtCmd[MAX_LINE_SIZE+2];
 	//char *args[MAX_ARG];
     if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
@@ -439,6 +434,7 @@ int ExeComp(char* lineSize)
 //**************************************************************************************
 int BgCmd(char* lineSize) //, jobs_list* jobs)
 {
+	jobs->update();
 
 	char* Command;
 	char string[MAX_LINE_SIZE];
