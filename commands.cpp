@@ -48,11 +48,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 		{
 			getcwd(pwd, sizeof(pwd)); 				// getting current directory
 
-			cout<< pwd << endl;
-			cout << args[1] << endl;
-			cout << prevPath << endl;
-
-			if (prevPathExists == false)
+			if (prevPathExists == false) //setting this path to previous if none set yet
 			{
 				strcpy(prevPath, pwd);
 				prevPathExists = true;
@@ -60,13 +56,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 
 			if (!strcmp(args[1], "-"))					// change to previous dir
 			{
-				//if (prevPathExists == false) 					// We havnt changed a dir yet Is this behav correct?
-				//{
-					//strcpy(prevPath, pwd);
-					//prevPathExists = true;
-					//cout << prevPath << endl;
-				//} else
-				//{
+
 					if (chdir(prevPath) == -1)	 // Can't find previous path
 					{
 						cout << "smash error: > " << prevPath << " - path not found" << endl;
@@ -76,7 +66,6 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 						cout << prevPath << endl;
 						strcpy(prevPath, pwd);
 					}
-				//}
 			} else													// change to new dir
 			{
 				if (chdir(args[1]) == -1)
@@ -86,6 +75,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 				} else
 				{
 					strcpy(prevPath, pwd);
+					cout<< args[1] <<endl;
 				}
 			}
 		}
