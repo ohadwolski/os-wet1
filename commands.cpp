@@ -8,7 +8,8 @@ using namespace std;
 //********************************************
 // globals
 
-static char prevPath[MAX_LINE_SIZE] = {NULL}; // used inorder to maintain previous path
+char prevPath[MAX_LINE_SIZE]; // used inorder to maintain previous path
+bool prevPathExists = false;
 //********************************************
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
@@ -45,15 +46,27 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 			illegal_cmd = true;
 		} else
 		{
-			getcwd(pwd, MAX_LINE_SIZE); 				// getting current directory
-			if (strcmp(args[1], "-"))					// change to previous dir
+			getcwd(pwd, sizeof(pwd)); 				// getting current directory
+
+			cout<< pwd << endl;
+			cout << args[1] << endl;
+			cout << prevPath << endl;
+
+			if (prevPathExists == false)
 			{
-				if (prevPath == NULL) 					// We havnt changed a dir yet Is this behav correct?
-				{
-					strcpy(prevPath, pwd);
-					cout << prevPath << endl;
-				} else
-				{
+				strcpy(prevPath, pwd);
+				prevPathExists = true;
+			}
+
+			if (!strcmp(args[1], "-"))					// change to previous dir
+			{
+				//if (prevPathExists == false) 					// We havnt changed a dir yet Is this behav correct?
+				//{
+					//strcpy(prevPath, pwd);
+					//prevPathExists = true;
+					//cout << prevPath << endl;
+				//} else
+				//{
 					if (chdir(prevPath) == -1)	 // Can't find previous path
 					{
 						cout << "smash error: > " << prevPath << " - path not found" << endl;
@@ -63,7 +76,7 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 						cout << prevPath << endl;
 						strcpy(prevPath, pwd);
 					}
-				}
+				//}
 			} else													// change to new dir
 			{
 				if (chdir(args[1]) == -1)
