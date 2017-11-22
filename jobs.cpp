@@ -217,14 +217,20 @@ job* jobs_list::get_last_job()
 //**************************************************************************************
 job* jobs_list::get_last_stopped()
 {
-	std::list<job*>::iterator it = jobsList.end();
-	 for (; it != jobsList.begin(); it--)
+  if (jobsList.size() == 0) return NULL;
+
+  jobsList.reverse();
+  std::list<job*>::iterator it = jobsList.begin();
+	 for (; it != jobsList.end(); it++)
 	 {
 		 if ((*it)->getStopped())
 		 {
-			 return (*it);
+       job* last_stopped = (*it);
+       jobsList.reverse();
+       return last_stopped;
 		 }
 	 }
+   jobsList.reverse();
 	return NULL;
 }
 

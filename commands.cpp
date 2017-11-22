@@ -4,6 +4,7 @@
 #include "history.h"
 #include "jobs.h"
 #include <unistd.h>
+#include <sys/stat.h>
 using namespace std;
 //********************************************
 // globals
@@ -261,6 +262,11 @@ int ExeCmd(char* lineSize, char* cmdString) //jobs_list* jobs
 			if (num_arg == 0)
 			{
 				job_c = jobs->get_last_stopped();
+				if (job_c == NULL)
+				{
+					cout<<"no jobs"<<endl;
+					return 1;
+				}
 				pid = job_c->getPId();
 			} else
 			{
@@ -346,33 +352,32 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 					break;
         	case 0 :
                 	// Child Process
-                	if (setpgrp() == -1)
-    				{
-    					perror("smash error: > setpgrp failed");
-    				}
+            		if (setpgrp() == -1)
+    						{
+    							perror("smash error: > setpgrp failed");
+    						}
 
 			        // Add your code here (execute an external command)
 
-    				execvp(args[0],args);
-    				perror("smash error: > execvp failed");
-    				exit(1);
+    						execvp(args[0],args);
+    						perror("smash error: > execvp failed");
+    						exit(1);
 
 			default:
                 	// Add your code here
 
-
-					new_fg(pID, args[0]);
-					////////////////////// changing fg status
-					int status;
-					if (waitpid(pID, &status , WUNTRACED) == -1) // waiting till stopped or exited
-					{
-						perror("smash error:> waitpid failed");
-						return;
-					} else if (WIFSTOPPED(status)) // if stopped than add to job list again
-					{
-						move_fg_to_bg();
-					}
-	}
+										new_fg(pID, args[0]);
+										////////////////////// changing fg status
+										int status;
+										if (waitpid(pID, &status , WUNTRACED) == -1) // waiting till stopped or exited
+										{
+											perror("smash error:> waitpid failed");
+											return;
+										} else if (WIFSTOPPED(status)) // if stopped than add to job list again
+										{
+											move_fg_to_bg();
+										}
+									}
 }
 //**************************************************************************************
 // function name: ExeComp
@@ -473,10 +478,18 @@ int BgCmd(char* lineSize) //, jobs_list* jobs)
 					perror("smash error: > setpgrp failed");
 					exit(0);
 				}
-				execvp(args[0],args);
-				exit(0);
+				if (execvp(args[0],args) == -1)
+					perror("smash error: > execvp failed");
+				exit(1);
 				break;
 			default:
+
+				struct stat buffer;
+				if (stat (args[0], &buffer) != 0)
+				{
+					perror("smash error: > stat failed");
+					return -1;
+				}
 				job* job_c = new job(jobs->getNextJobNum() ,pID, args[0]);
 				jobs->addJob(job_c);
 				delete job_c;
